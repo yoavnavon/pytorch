@@ -75,7 +75,7 @@ from torch.onnx import (register_custom_op_symbolic,
                         unregister_custom_op_symbolic)
 torch.backends.disable_global_flags()
 
-PYTEST_FILES = ["test_ops", "test_ops_gradients", "test_ops_jit", "test_fx"]
+PYTEST_FILES = ["test_ops", "test_ops_gradients", "test_ops_jit"]
 
 FILE_SCHEMA = "file://"
 if sys.platform == 'win32':

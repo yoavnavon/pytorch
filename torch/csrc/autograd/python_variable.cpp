@@ -2417,9 +2417,10 @@ c10::SymIntArrayRef concrete_sym_sizes_fn(
   for (auto it = out.begin(); it != out.end(); it++) {
     auto elm = *it;
     auto si = torch::is_symint_node(elm)
-        ? elm.cast<c10::SymbolicIntNode*>()->toSymInt()
+        ? elm.cast<c10::SymIntNodeImpl*>()->toSymInt()
         : c10::SymInt{py::cast<int64_t>(elm)};
-    symints.append(si.data());
+    // TODO: the buffer will need to be made owning later
+    symints.append(si.as_int_unchecked());
   }
 
   auto result = values_from_buffer(self, symints);

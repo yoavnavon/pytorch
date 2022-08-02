@@ -1532,11 +1532,11 @@
   result: auto_linear
 
 - name: sum.SymInt(Tensor self, SymInt[1] dim, bool keepdim=False, *, ScalarType? dtype=None) -> Tensor
-  self: sum_backward(grad, self.sym_sizes(), dim, keepdim)
+  self: sum_backward_symint(grad, self.sym_sizes(), dim, keepdim)
   result: auto_linear
 
 - name: sum.dim_IntList(Tensor self, int[1]? dim, bool keepdim=False, *, ScalarType? dtype=None) -> Tensor
-  self: sum_backward(grad, self.sizes(), dim, keepdim)
+  self: sum_backward(grad, IntArrayRef({-1}), dim, keepdim, self)
   result: auto_linear
 
 - name: nansum(Tensor self, int[1] dim=[], bool keepdim=False, *, ScalarType? dtype=None) -> Tensor

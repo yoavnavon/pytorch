@@ -23,12 +23,12 @@ def calculate_shards(
         filtered_job_times, key=lambda j: filtered_job_times[j], reverse=True
     )
     sharded_jobs: List[Tuple[float, List[str]]] = [(0.0, []) for _ in range(num_shards)]
-    for job in sorted_jobs:
-        min_shard_index = sorted(range(num_shards), key=lambda i: sharded_jobs[i][0])[0]
+    for i in range(0, len(sorted_jobs), 3):
+        min_shard_index = sorted(range(num_shards), key=lambda j: sharded_jobs[j][0])[0]
         curr_shard_time, curr_shard_jobs = sharded_jobs[min_shard_index]
-        curr_shard_jobs.append(job)
+        curr_shard_jobs.extend(sorted_jobs[i : i + 3])
         sharded_jobs[min_shard_index] = (
-            curr_shard_time + filtered_job_times[job],
+            curr_shard_time + filtered_job_times[sorted_jobs[i]],
             curr_shard_jobs,
         )
 

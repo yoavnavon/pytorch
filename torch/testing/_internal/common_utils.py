@@ -865,6 +865,12 @@ TEST_SKIP_FAST = os.getenv('PYTORCH_TEST_SKIP_FAST', '0') == '1'
 # as we had before.  By default, we don't run these tests.
 TEST_WITH_CROSSREF = os.getenv('PYTORCH_TEST_WITH_CROSSREF', '0') == '1'
 
+if (
+    "linux" in os.getenv("BUILD_ENVIRONMENT", "")
+    and TEST_CUDA
+):
+    torch.cuda.set_per_process_memory_fraction(0.13)
+
 def skipIfCrossRef(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):

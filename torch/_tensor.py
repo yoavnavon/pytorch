@@ -823,7 +823,7 @@ class Tensor(torch._C._TensorBase):
     def __format__(self, format_spec):
         if has_torch_function_unary(self):
             return handle_torch_function(Tensor.__format__, (self,), self, format_spec)
-        if self.dim() == 0 and not self.is_meta and type(self) is Tensor:
+        if self.dim() == 0 and not self.is_meta:
             return self.item().__format__(format_spec)
         return object.__format__(self, format_spec)
 
@@ -1236,18 +1236,14 @@ class Tensor(torch._C._TensorBase):
 
         While not mandatory, we recommend making `__torch_function__` a classmethod.
         """
-        if kwargs is None:
-            kwargs = {}
-
         if not all(issubclass(cls, t) for t in types):
             return NotImplemented
 
-        with _C.DisableTorchFunction():
-            ret = func(*args, **kwargs)
-            if func in get_default_nowrap_functions():
-                return ret
-            else:
-                return _convert(ret, cls)
+        ret = torch._C._skip_one_hop_torch_function(func, types, args, kwargs)
+        if func in get_default_nowrap_functions():
+            return ret
+        else:
+            return _convert(ret, cls)
 
     __torch_dispatch__ = _C._disabled_torch_dispatch_impl
 

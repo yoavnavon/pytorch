@@ -867,8 +867,7 @@ TEST_WITH_CROSSREF = os.getenv('PYTORCH_TEST_WITH_CROSSREF', '0') == '1'
 
 
 if (
-    "linux" in os.environ["BUILD_ENVIRONMENT"]
-    and TEST_CUDA
+    TEST_CUDA
 ):
     torch.cuda.set_per_process_memory_fraction(0.21)
 

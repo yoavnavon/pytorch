@@ -13322,6 +13322,8 @@ op_db: List[OpInfo] = [
            skips=(
                DecorateInfo(unittest.skip("memory hog"), 'TestGradients', 'test_fn_fwgrad_bwgrad',
                             device_type='cuda', dtypes=[torch.float64]),
+               DecorateInfo(unittest.skip("memory hog"), 'TestCommon', 'test_dtypes',
+                            device_type='cuda'),
            )),
     OpInfo('linalg.lu',
            aten_name='linalg_lu',
@@ -13336,7 +13338,7 @@ op_db: List[OpInfo] = [
            decorators=[skipCUDAIfNoMagmaAndNoCusolver, skipCPUIfNoLapack],
            skips=(
                DecorateInfo(unittest.skip("memory hog"), 'TestGradients', 'test_fn_fwgrad_bwgrad',
-                            device_type='cuda', dtypes=[torch.float64]),
+                            device_type='cuda', dtypes=[torch.float64, torch.complex128]),
                DecorateInfo(unittest.skip("memory hog"), 'TestCommon', 'test_out',
                             device_type='cuda', dtypes=[torch.float32]),
            )),

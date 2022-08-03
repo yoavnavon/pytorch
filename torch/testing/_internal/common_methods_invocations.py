@@ -13345,6 +13345,8 @@ op_db: List[OpInfo] = [
                             device_type='cuda', dtypes=[torch.float64, torch.complex128]),
                DecorateInfo(unittest.skip("memory hog"), 'TestCommon', 'test_out',
                             device_type='cuda', dtypes=[torch.float32]),
+               DecorateInfo(unittest.skip("memory hog"), 'TestCommon', 'test_dtypes',
+                            device_type='cuda'),
            )),
     OpInfo('lu_unpack',
            op=torch.lu_unpack,
@@ -13380,7 +13382,7 @@ op_db: List[OpInfo] = [
                # UserWarning not triggered : Resized a non-empty tensor but did not warn about it.
                DecorateInfo(unittest.expectedFailure, 'TestCommon', 'test_out_warning'),
                DecorateInfo(unittest.skip("memory hog"), 'TestGradients', 'test_fn_fwgrad_bwgrad',
-                            device_type='cuda', dtypes=[torch.float64]),
+                            device_type='cuda', dtypes=[torch.float64, torch.complex128]),
            )),
     OpInfo('lu_solve',
            op=torch.lu_solve,

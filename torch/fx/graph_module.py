@@ -4,7 +4,7 @@ import torch.overrides
 from torch.nn.modules.module import _addindent
 from torch.package import PackageImporter, PackageExporter
 import linecache
-from typing import Type, Dict, List, Any, Union, Optional, Set
+from typing import Type, Dict, List, Any, Union, Optional, Set, Callable
 from .graph import Graph, _PyTreeCodeGen, _is_from_torch, _custom_builtins, PythonCode
 from ._compatibility import compatibility
 from torch.package import Importer, sys_importer
@@ -15,6 +15,7 @@ import traceback
 from pathlib import Path
 import os
 import warnings
+from contextlib import contextmanager
 
 # Normal exec loses the source code, however we can work with
 # the linecache module to recover it.
@@ -624,6 +625,18 @@ class {module_name}(torch.nn.Module):
             raise RuntimeError('Code has not been generated! Please report a bug to PyTorch')
         return self._code
 
+    src_forward: Callable[..., Any]
+
+    @contextmanager
+    def _jit_script_mode(self):
+        cls = type(self)
+        saved_forward = cls.forward
+        try:
+            cls.forward = cls.src_forward
+            yield
+        finally:
+            cls.forward = saved_forward
+
     @compatibility(is_backward_compatible=True)
     def recompile(self) -> PythonCode:
         """
@@ -638,7 +651,14 @@ class {module_name}(torch.nn.Module):
         self._code = python_code.src
 
         cls = type(self)
-        cls.forward = _forward_from_src(self._code, python_code.globals)
+        cls.src_forward = _forward_from_src(self._code, python_code.globals)
+
+        self._interpreter = torch.fx.Interpreter(self)
+
+        def _forward_from_interpreter(cls, *args, **kwargs):
+            return self._interpreter.run(*args, **kwargs)
+
+        cls.forward = _forward_from_interpreter
 
         # Determine whether this class explicitly defines a __call__ implementation
         # to wrap. If it does, save it in order to have wrapped_call invoke it.
@@ -664,6 +684,7 @@ class {module_name}(torch.nn.Module):
         dict_without_graph = self.__dict__.copy()
         dict_without_graph['_graphmodule_cls_name'] = self.__class__.__name__
         del dict_without_graph['_graph']
+        del dict_without_graph['_interpreter']
 
         python_code = self.recompile()
         import_block = _format_import_block(python_code.globals, importer)
@@ -673,6 +694,7 @@ class {module_name}(torch.nn.Module):
         dict_without_graph = self.__dict__.copy()
         dict_without_graph['_graphmodule_cls_name'] = self.__class__.__name__
         del dict_without_graph['_graph']
+        del dict_without_graph['_interpreter']
 
         generated_module_name = f'fx-generated._{exporter.get_unique_id()}'
         python_code = self.recompile()
@@ -693,6 +715,7 @@ class {module_name}(torch.nn.Module):
         python_code = self.recompile()
         import_block = _format_import_block(python_code.globals, sys_importer)
         del dict_without_graph['_graph']
+        del dict_without_graph['_interpreter']
         return (reduce_graph_module, (dict_without_graph, import_block))
 
     # because __reduce__ is defined for serialization,
@@ -700,7 +723,11 @@ class {module_name}(torch.nn.Module):
     # and cause symbolic tracing to occur every time we try to copy the object
     def __deepcopy__(self, memo):
         fake_mod = torch.nn.Module()
-        fake_mod.__dict__ = copy.deepcopy(self.__dict__)
+
+        # self._interpreter references self
+        # skip deepcopying self._interpreter to avoid infinite recursive recursion
+        dict_without_interpreter = {k : v for k, v in self.__dict__.items() if k != '_interpreter'}
+        fake_mod.__dict__ = copy.deepcopy(dict_without_interpreter)
         return GraphModule(fake_mod, fake_mod.__dict__['_graph'])
 
     def __copy__(self):

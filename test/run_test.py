@@ -944,7 +944,7 @@ def main():
 
     has_failed = False
     failure_messages = []
-    special_files = ['test_nn', 'test_fake_tensor', 'test_cpp_api_parity', 'test_jit_cuda_fuser', 'test_reductions', 'test_cuda']
+    special_files = ['test_nn', 'test_fake_tensor', 'test_cpp_api_parity', 'test_jit_cuda_fuser', 'test_reductions', 'test_cuda', 'test_indexing', 'test_fx_backends']
 
     def can_parallel(x: str) -> bool:
         if x in CUSTOM_HANDLERS or x in special_files:
@@ -959,6 +959,7 @@ def main():
         selected_tests2 = []
     procs = []
     try:
+        os.environ['PARALLEL_TESTING'] = '1'
         for test in selected_tests1:
             while len(procs) >= 3:
                 tmp = []
@@ -1023,7 +1024,7 @@ def main():
             if not options_clone.continue_through_error:
                 raise RuntimeError(err_message)
             print_to_stderr(err_message)
-
+        del os.environ['PARALLEL_TESTING']
         for test in selected_tests2:
             options_clone = copy.deepcopy(options)
             if test in USE_PYTEST_LIST:

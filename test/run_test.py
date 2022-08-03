@@ -944,7 +944,7 @@ def main():
 
     has_failed = False
     failure_messages = []
-    special_files = ['test_nn', 'test_fake_tensor', 'test_cpp_api_parity']
+    special_files = ['test_nn', 'test_fake_tensor', 'test_cpp_api_parity', 'test_jit_cuda_fuser', 'test_reductions', 'test_cuda']
 
     def can_parallel(x: str) -> bool:
         if x in CUSTOM_HANDLERS or x in special_files:

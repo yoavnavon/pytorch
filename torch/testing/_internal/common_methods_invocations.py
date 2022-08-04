@@ -12901,7 +12901,7 @@ op_db: List[OpInfo] = [
                DecorateInfo(unittest.skip("memory hog"), 'TestCommon', 'test_out_warning',
                             device_type='cuda'),
                DecorateInfo(unittest.skip("memory hog"), 'TestCommon', 'test_variant_consistency_eager',
-                            device_type='cuda', dtypes=[torch.float32]),
+                            device_type='cuda', dtypes=[torch.float32, torch.complex64]),
            )),
     OpInfo('linalg.lstsq',
            aten_name='linalg_lstsq',
@@ -13332,6 +13332,8 @@ op_db: List[OpInfo] = [
            skips=(
                DecorateInfo(unittest.skip("memory hog"), 'TestGradients', 'test_fn_fwgrad_bwgrad',
                             device_type='cuda', dtypes=[torch.float64, torch.complex128]),
+               DecorateInfo(unittest.skip("memory hog"), 'TestGradients', 'test_fn_gradgrad',
+                            device_type='cuda', dtypes=[torch.complex128]),
                DecorateInfo(unittest.skip("memory hog"), 'TestCommon', 'test_dtypes',
                             device_type='cuda'),
                DecorateInfo(unittest.skip("memory hog"), 'TestCommon', 'test_noncontiguous_samples',

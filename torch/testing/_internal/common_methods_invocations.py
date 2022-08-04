@@ -12890,8 +12890,6 @@ op_db: List[OpInfo] = [
                skipCUDAIf(_get_torch_cuda_version() < (11, 4), "not available before CUDA 11.3.1"),
                skipCUDAIfNoCusolver, skipCUDAIfRocm, skipCPUIfNoLapack],
            skips=(
-               DecorateInfo(unittest.skip("memory hog"), 'TestJit', 'test_variant_consistency_jit',
-                            device_type='cuda', dtypes=[torch.float32, torch.complex64]),
                DecorateInfo(unittest.skip("memory hog"), 'TestCommon', 'test_dtypes',
                             device_type='cuda'),
                DecorateInfo(unittest.skip("memory hog"), 'TestCommon', 'test_noncontiguous_samples',

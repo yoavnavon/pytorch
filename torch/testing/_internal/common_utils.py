@@ -728,7 +728,7 @@ def run_tests(argv=UNITTEST_ARGS):
             # f = failed
             # E = error
             # X = unexpected success
-            exit_code = pytest.main(args=[inspect.getfile(sys._getframe(1)), f'-n={num_procs}', '-vv', '-x',
+            exit_code = pytest.main(args=[inspect.getfile(sys._getframe(1)), '-vv', '-x',
                                     '--reruns=2', '-rfEX', f'--junit-xml-reruns={pytest_report_path}'])
             del os.environ["USING_PYTEST"]
             sanitize_pytest_xml(f'{pytest_report_path}')

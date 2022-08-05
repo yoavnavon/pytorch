@@ -48,6 +48,9 @@ except ImportError:
         "Unable to import test_selections from tools/testing. Running without test selection stats..."
     )
 
+special_files = ['test_nn', 'test_fake_tensor', 'test_cpp_api_parity', 'test_jit_cuda_fuser', 'test_reductions',
+                 'test_cuda', 'test_indexing', 'test_fx_backends', 'test_linalg', 'test_cpp_extensions_jit',
+                 'test_torch', 'test_ops']
 
 def discover_tests(
         base_dir: Optional[pathlib.Path] = None,
@@ -884,7 +887,7 @@ def get_selected_tests(options):
         else:
             print("Found test time stats from artifacts")
             test_file_times_config = test_file_times[test_config]
-            shards = calculate_shards(num_shards, selected_tests, test_file_times_config)
+            shards = calculate_shards(num_shards, selected_tests, test_file_times_config, special_files=special_files)
             _, tests_from_shard = shards[which_shard - 1]
             selected_tests = tests_from_shard
 
@@ -944,7 +947,6 @@ def main():
 
     has_failed = False
     failure_messages = []
-    special_files = ['test_nn', 'test_fake_tensor', 'test_cpp_api_parity', 'test_jit_cuda_fuser', 'test_reductions', 'test_cuda', 'test_indexing', 'test_fx_backends']
 
     def can_parallel(x: str) -> bool:
         if x in CUSTOM_HANDLERS or x in special_files:

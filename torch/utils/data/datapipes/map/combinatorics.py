@@ -2,9 +2,10 @@ import random
 
 from torch.utils.data.datapipes._decorator import functional_datapipe
 from torch.utils.data.datapipes.datapipe import MapDataPipe
-from typing import Iterator, List, Optional, TypeVar
+from typing import Iterator, List, Optional, TypeVar, Union
+from copy import deepcopy
 
-__all__ = ["ShufflerMapDataPipe", ]
+__all__ = ["ShufflerMapDataPipe", "DropperDataPipe", ]
 
 
 T_co = TypeVar('T_co', covariant=True)
@@ -61,6 +62,56 @@ class ShufflerMapDataPipe(MapDataPipe[T_co]):
     def __iter__(self) -> Iterator[T_co]:
         for i in self.indices:
             yield self.datapipe[i]
+
+    def __len__(self) -> int:
+        return len(self.datapipe)
+
+@functional_datapipe('drop')
+class DropperMapDataPipe(MapDataPipe[T_co]):
+    r"""
+    Drop columns/elements in input DataPipe via its indices (functional name: ``drop``).
+
+    Args:
+        datapipe: MapDataPipe with columns to be dropped
+        indices: a single column index to be dropped or a list of indices
+
+    Example:
+        >>> from torchdata.datapipes.map import SequenceWrapper, ZipperMapDataPipe
+        >>> dp1 = SequenceWrapper(range(5))
+        >>> dp2 = SequenceWrapper(range(10, 15))
+        >>> dp = dp1.zip(dp2)
+        >>> list(dp)
+        [(0, 10), (1, 11), (2, 12), (3, 13), (4, 14)]
+        >>> drop_dp = dp.drop(1)
+        >>> list(drop_dp)
+        [(0), (1), (2), (3), (4)]
+    """
+    datapipe: MapDataPipe[T_co]
+
+    def __init__(self,
+                 datapipe: MapDataPipe[T_co],
+                 indices: Union[int, List],
+                 ) -> None:
+        super().__init__()
+        self.datapipe = datapipe
+        if isinstance(indices, list):
+            self.indices = indices
+        else:
+            self.indices = [indices]
+
+    def __getitem__(self, index) -> T_co:
+        old_item = self.datapipe[index]
+        new_item = deepcopy(old_item)
+        if isinstance(old_item, tuple):
+            new_item = list(new_item)
+        
+        for i in self.indices:
+            del new_item[i]
+        
+        if isinstance(old_item, tuple):
+            new_item = tuple(new_item)
+
+        return new_item
 
     def __len__(self) -> int:
         return len(self.datapipe)

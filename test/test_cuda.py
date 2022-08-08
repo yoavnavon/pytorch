@@ -14,6 +14,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from random import randint
 
 import torch
 import torch.cuda
@@ -4406,6 +4407,35 @@ class TestCudaComm(TestCase):
             self.assertTrue(isinstance(x, type(out2[-1])))
             cat = torch.cat((outputs[0][i].to('cpu'), outputs[1][i].to('cpu')))
             self.assertTrue(torch.equal(x, cat))
+
+    def test_memory_snapshot(self):
+        try:
+            torch.cuda.memory.empty_cache()
+            torch.cuda.memory._record_memory_history(True)
+            x = torch.rand(311, 411).cuda()
+            ss = torch.cuda.memory._snapshot()
+
+            tensors = [torch.rand(128, device='cuda') for _ in range(1000)]
+            while tensors:
+                del tensors[randint(0, len(tensors) - 1)]
+            torch.rand(128 * 5, device='cuda')
+            found_it = False
+            for seg in ss:
+                for b in seg['blocks']:
+                    if 'history' in b:
+                        for h in b['history']:
+                            if h['real_size'] == 311 * 411 * 4:
+                                self.assertTrue('test_cuda' in h['frames'][0]['filename'])
+                                found_it = True
+            self.assertTrue(found_it)
+            if not IS_WINDOWS:
+                with tempfile.NamedTemporaryFile() as f:
+                    torch.cuda.memory._save_segment_usage(f.name)
+                    with open(f.name, 'r') as f2:
+                        self.assertTrue('test_cuda.py' in f2.read())
+
+        finally:
+            torch.cuda.memory._record_memory_history(False)
 
 instantiate_parametrized_tests(TestCuda)
 

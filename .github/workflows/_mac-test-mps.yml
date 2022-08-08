@@ -63,5 +63,7 @@ jobs:
           # This step currently fails if we actually run as if we're in CI.
           # unset CI
 
-          conda run --cwd test -p "${ENV_NAME}" pip install "unittest-xml-reporting<=3.2.0,>=2.0.0" && python3 test_mps.py -v
+          conda run -p "${ENV_NAME}" pip install "unittest-xml-reporting<=3.2.0,>=2.0.0"
+
+          conda run --cwd test -p "${ENV_NAME}" python3 test_mps.py -v
           conda env remove -p "${ENV_NAME}"
